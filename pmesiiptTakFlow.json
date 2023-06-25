@@ -1,0 +1,405 @@
+[
+    {
+        "id": "ac4889c054fdc2a7",
+        "type": "tab",
+        "label": "pmesiiptTakFlow",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "5e4c8959f8c2cd2f",
+        "type": "chatgpt",
+        "z": "ac4889c054fdc2a7",
+        "name": "",
+        "APIKEY": "",
+        "x": 1240,
+        "y": 260,
+        "wires": [
+            [
+                "92496642e7b8a52c",
+                "58607dd9846d66c7"
+            ]
+        ]
+    },
+    {
+        "id": "92496642e7b8a52c",
+        "type": "debug",
+        "z": "ac4889c054fdc2a7",
+        "name": "debug resp",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1390,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "be3adb5ffd12e301",
+        "type": "http request",
+        "z": "ac4889c054fdc2a7",
+        "name": "http req",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "https://geocode.maps.co/reverse?lat={{{payload.lat}}}&lon={{{payload.lon}}}",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 840,
+        "y": 260,
+        "wires": [
+            [
+                "3fb1322a2edbde6b",
+                "9be11ccd1449141c"
+            ]
+        ]
+    },
+    {
+        "id": "3fb1322a2edbde6b",
+        "type": "debug",
+        "z": "ac4889c054fdc2a7",
+        "name": "debug http",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 990,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "9be11ccd1449141c",
+        "type": "function",
+        "z": "ac4889c054fdc2a7",
+        "name": "chatgpt req",
+        "func": "var newMsg = { payload: String(\"for the location of \" + msg.payload.address.state + \" in \" + msg.payload.address.country + \" can you give me a bullet point list of the political variables, military variables, economic variables, social variables, information variables, infrastructure variables, physical environment variables, and time variables. respond with short general information, even if its not updated\")};\nnode.send(newMsg);\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1050,
+        "y": 260,
+        "wires": [
+            [
+                "5e4c8959f8c2cd2f",
+                "0e47a563205ce34f"
+            ]
+        ]
+    },
+    {
+        "id": "0e47a563205ce34f",
+        "type": "debug",
+        "z": "ac4889c054fdc2a7",
+        "name": "debug req",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1190,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "64f9d0e1e6b2fd4c",
+        "type": "function",
+        "z": "ac4889c054fdc2a7",
+        "name": "filter data",
+        "func": "var callsign = msg.payload.event.detail.contact._attributes.callsign;\nif (callsign === \"pmesiipt\" || callsign === \"pmesii-pt\" || callsign === \"Pmesiipt\" || callsign === \"Pmesii-pt\" || callsign === \"PMESIIPT\" || callsign === \"PMESII-PT\") {\n    msg.payload = {\n        \"lat\": msg.payload.event.point._attributes.lat,\n        \"lon\": msg.payload.event.point._attributes.lon,\n        \"uid\": msg.payload.event._attributes.uid\n    };\n    node.send(msg);\n} else {\n    return null;\n};",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 660,
+        "y": 300,
+        "wires": [
+            [
+                "be3adb5ffd12e301",
+                "58607dd9846d66c7",
+                "80629f6ecb983d66"
+            ]
+        ]
+    },
+    {
+        "id": "682041e33ab1beb2",
+        "type": "function",
+        "z": "ac4889c054fdc2a7",
+        "name": "pmesiipt json",
+        "func": "const short = 10000;\nconst cinco = 5 * 60 * 1000;\nconst diez = 2 * cinco;\nconst stale = new Date(Date.now() + cinco).toISOString();\n//const color = \"-256\";\nvar PMESIIPT = msg.payload[1];\n\n\nmsg.payload = {\n    \"_declaration\": {\n        \"_attributes\": {\n            \"version\": \"1.0\",\n            \"encoding\": \"UTF-8\"\n        }\n    },\n    \"event\": {\n        \"_attributes\": {\n            \"version\": \"2.0\",\n            \"uid\": msg.payload[0].uid,\n            \"type\": \"b-m-p-s-m\",\n            \"how\": \"h-g-i-g-o\",\n            \"time\": new Date(Date.now()).toISOString(),\n            \"start\": new Date(Date.now()).toISOString(),\n            \"stale\": stale\n        },\n        \"point\": {\n            \"_attributes\": {\n                \"lat\": msg.payload[0].lat,\n                \"lon\": msg.payload[0].lon,\n                \"hae\": \"0.0\",\n                \"ce\": \"9999999.0\",\n                \"le\": \"9999999.0\"\n            }\n        },\n        \"detail\": {\n            \"contact\": {\n                \"_attributes\": {\n                    \"callsign\": \"PMESIIPT\"\n                }\n            },\n            \"status\": {\n                \"_attributes\": {\n                    \"readiness\": \"true\"\n                }\n            },\n            \"archive\": [{}, {}],\n            \"color\": {\n                \"_attributes\": {\n                    \"argb\": \"-1\"\n                }\n            },\n            \"usericon\": {\n                \"_attributes\": {\n                    \"iconsetpath\": \"f7f71666-8b28-4b57-9fbb-e38e61d33b79/Google/info-i.png\",\n                }\n            },\n            \"remarks\": {\n                \"_text\": PMESIIPT,\n            },\n        }\n    }\n}\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1620,
+        "y": 300,
+        "wires": [
+            [
+                "85cfddf436f295d6",
+                "76db173505234c5d"
+            ]
+        ]
+    },
+    {
+        "id": "58607dd9846d66c7",
+        "type": "join",
+        "z": "ac4889c054fdc2a7",
+        "name": "",
+        "mode": "custom",
+        "build": "array",
+        "property": "payload",
+        "propertyType": "msg",
+        "key": "topic",
+        "joiner": "\\n",
+        "joinerType": "str",
+        "accumulate": false,
+        "timeout": "",
+        "count": "2",
+        "reduceRight": false,
+        "reduceExp": "",
+        "reduceInit": "",
+        "reduceInitType": "",
+        "reduceFixup": "",
+        "x": 1390,
+        "y": 300,
+        "wires": [
+            [
+                "682041e33ab1beb2",
+                "dbf330e72d17ec55"
+            ]
+        ]
+    },
+    {
+        "id": "dbf330e72d17ec55",
+        "type": "debug",
+        "z": "ac4889c054fdc2a7",
+        "name": "debug join",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1550,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "85cfddf436f295d6",
+        "type": "tak",
+        "z": "ac4889c054fdc2a7",
+        "name": "TAK",
+        "x": 1870,
+        "y": 300,
+        "wires": [
+            [
+                "366d8fb7db2c2a1e",
+                "5840d1a5ce1b13fa"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "366d8fb7db2c2a1e",
+        "type": "debug",
+        "z": "ac4889c054fdc2a7",
+        "name": "debug cot",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 2010,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "5840d1a5ce1b13fa",
+        "type": "udp out",
+        "z": "ac4889c054fdc2a7",
+        "name": "",
+        "addr": "239.2.3.1",
+        "iface": "",
+        "port": "6969",
+        "ipv": "udp4",
+        "outport": "",
+        "base64": false,
+        "multicast": "multi",
+        "x": 2130,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "80629f6ecb983d66",
+        "type": "debug",
+        "z": "ac4889c054fdc2a7",
+        "name": "debug filter",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 790,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "9ca3cc3c68b8526d",
+        "type": "tak",
+        "z": "ac4889c054fdc2a7",
+        "name": "TAK",
+        "x": 490,
+        "y": 300,
+        "wires": [
+            [
+                "64f9d0e1e6b2fd4c"
+            ],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "dd6f2005e4015119",
+        "type": "tcp in",
+        "z": "ac4889c054fdc2a7",
+        "name": "",
+        "server": "client",
+        "host": "10.237.104.20",
+        "port": "8089",
+        "datamode": "stream",
+        "datatype": "utf8",
+        "newline": "",
+        "topic": "",
+        "trim": false,
+        "base64": false,
+        "tls": "1c52b35895c06e7e",
+        "x": 260,
+        "y": 300,
+        "wires": [
+            [
+                "9ca3cc3c68b8526d"
+            ]
+        ]
+    },
+    {
+        "id": "76db173505234c5d",
+        "type": "debug",
+        "z": "ac4889c054fdc2a7",
+        "name": "debug json",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1790,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "387e26682badbcb7",
+        "type": "udp in",
+        "z": "ac4889c054fdc2a7",
+        "name": "",
+        "iface": "",
+        "port": "6969",
+        "ipv": "udp4",
+        "multicast": "true",
+        "group": "239.2.3.1",
+        "datatype": "utf8",
+        "x": 270,
+        "y": 360,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "7dd880c6c50dd910",
+        "type": "comment",
+        "z": "ac4889c054fdc2a7",
+        "name": "configure TCP (TAKServer)",
+        "info": "if using SSL/TLS ensure you upload your certificates, key and input your passphrase.\nCertificates (.pem) and key (.key) can be found in your TAKServers directory where it stores all TAK client certificates.\nDefualt SSL/TLS port is 8089.\n",
+        "x": 250,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "eddc18fabd96ca54",
+        "type": "comment",
+        "z": "ac4889c054fdc2a7",
+        "name": "configure TCP (TAKServer)",
+        "info": "if using SSL/TLS ensure you upload your certificates, key and input your passphrase.\nCertificates (.pem) and key (.key) can be found in your TAKServers directory where it stores all TAK client certificates.\nDefualt SSL/TLS port is 8089.\n",
+        "x": 2150,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "c2da49ef9313e1fb",
+        "type": "tcp out",
+        "z": "ac4889c054fdc2a7",
+        "name": "",
+        "host": "10.237.104.20",
+        "port": "8089",
+        "beserver": "client",
+        "base64": false,
+        "end": false,
+        "tls": "1c52b35895c06e7e",
+        "x": 2150,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "4a8b15a844cd3951",
+        "type": "comment",
+        "z": "ac4889c054fdc2a7",
+        "name": "configure chatgpt",
+        "info": "go to openai and copy paste your free api key obtained.\nhttps://platform.openai.com/account/api-keys",
+        "x": 1220,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "1c52b35895c06e7e",
+        "type": "tls-config",
+        "name": "node-red to takserver",
+        "cert": "",
+        "key": "",
+        "ca": "",
+        "certname": "node-red.pem",
+        "keyname": "node-red.key",
+        "caname": "ca.pem",
+        "servername": "",
+        "verifyservercert": false,
+        "alpnprotocol": ""
+    }
+]
